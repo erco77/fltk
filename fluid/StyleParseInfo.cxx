@@ -184,3 +184,15 @@ int StyleParseInfo::parse_directive() {
 int StyleParseInfo::parse_line_comment() {
   return parse_to_eol('B');
 }
+
+// Parse a backslash escape character sequence.
+//    Purposefully don't 'handle' \n, since an escaped \n should be
+//    a continuation of a line, such as in a multiline #directive.
+//    Returns 0 if hit end of buffer, 1 otherwise.
+//
+int StyleParseInfo::parse_escape() {
+  const char no_crlf = 0;
+  if ( !parse_over_char(no_crlf) ) return 0;     // backslash
+  if ( !parse_over_char(no_crlf) ) return 0;     // char escaped
+  return 1;
+}

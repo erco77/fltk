@@ -36,6 +36,7 @@ public:
   int  parse_quoted_string();     // "hello"
   int  parse_directive();         // "#define"
   int  parse_line_comment();      // "// text.."
+  int  parse_escape();            // "\'"
 };
 
 #endif //StyleParseInfo_h

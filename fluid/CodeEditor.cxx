@@ -175,44 +175,29 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
   spi.col    = 0;
   spi.last   = 0;
 
-  char c,c2;
-  const char no_crlf = 0;
+  char c;
   while ( spi.len > 0 ) {
-    c  = spi.tbuff[0];                     // current char
-    c2 = (spi.len > 0) ? spi.tbuff[1] : 0; // next char
+    c = spi.tbuff[0];  // current char
     //DEBUG printf("WORKING ON %d (%c) style=%c lwhite=%d len=%d\n", spi.col, c, spi.style, spi.lwhite, spi.len);
-    if ( spi.style == 'C' ) {
-      // Started *already inside* a block comment? Parse to end of comment or buffer
-      spi.parse_block_comment();
-    } else if ( spi.style != 'C' && c == '/' && c2 == '*' ) {
-      // Start of new block comment? Parse to end of comment or buffer
-      spi.parse_block_comment();
-    } else if ( c == '\\' ) {
-      // Handle backslash escape sequence
-      //    Purposefully don't 'handle' \n, since an escaped \n should be
-      //    a continuation of a line, such as in a multiline #directive
-      //
-      if ( !spi.parse_over_char(no_crlf) ) break;     // backslash
-      if ( !spi.parse_over_char(no_crlf) ) break;     // char escaped
-      continue;
-    } else if ( spi.style != 'D' && spi.style != 'B' && c == '/' && c2 == '/' ) {
-      spi.parse_line_comment();
-      continue;
-    } else if ( spi.style != 'D' && c == '"' ) {
-      // Start of quoted string?
-      spi.parse_quoted_string();
-      continue;
-    } else if ( c == '#' && spi.lwhite ) { // '#' Directive?
-      spi.parse_directive();
-      continue;
-    } else if ( // spi.style != 'D' &&     // not parsing in a string
-                !spi.last && (islower(c) || c == '_') ) { // Possible C/C++ keyword?
-      spi.parse_keyword();
-      continue;
+    if ( spi.style == 'C' ) {                             // Started in middle of comment block?
+      if ( !spi.parse_block_comment() ) break;
+    } else if ( strncmp(spi.tbuff, "/*", 2)==0 ) {        // C style comment block?
+      if ( !spi.parse_block_comment() ) break;
+    } else if ( c == '\\' ) {                             // Backslash escape char?
+      if ( !spi.parse_escape() ) break;
+    } else if ( strncmp(spi.tbuff, "//", 2)==0 ) {        // Line comment?
+      if ( !spi.parse_line_comment() ) break;
+    } else if ( c == '"' ) {                              // Start of quoted string?
+      if ( !spi.parse_quoted_string() ) break;
+    } else if ( c == '#' && spi.lwhite ) {                // Start of '#' directive?
+      if ( !spi.parse_directive() ) break;
+    } else if ( !spi.last && (islower(c) || c == '_') ) { // Possible C/C++ keyword?
+      if ( !spi.parse_keyword() ) break;
+    } else {                                              // All other chars..
+      spi.last = isalnum(*spi.tbuff) || *spi.tbuff == '_' || *spi.tbuff == '.';
+      // Parse over the character
+      if ( !spi.parse_over_char() ) break;
     }
-    spi.last = isalnum(*spi.tbuff) || *spi.tbuff == '_' || *spi.tbuff == '.';
-    // Parse over the character
-    if ( !spi.parse_over_char() ) break;
   }
 }
 
