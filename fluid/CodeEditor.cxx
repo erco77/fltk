@@ -2,6 +2,7 @@
 // "$Id$"
 //
 // Code editor widget for the Fast Light Tool Kit (FLTK).
+// Syntax highlighting rewritten by erco@seriss.com 09/15/20.
 //
 // Copyright 1998-2016 by Bill Spitzak and others.
 //
@@ -175,10 +176,10 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
   spi.col    = 0;
   spi.last   = 0;
 
+  // Loop through the code, updating style buffer
   char c;
   while ( spi.len > 0 ) {
     c = spi.tbuff[0];  // current char
-    //DEBUG printf("WORKING ON %d (%c) style=%c lwhite=%d len=%d\n", spi.col, c, spi.style, spi.lwhite, spi.len);
     if ( spi.style == 'C' ) {                             // Started in middle of comment block?
       if ( !spi.parse_block_comment() ) break;
     } else if ( strncmp(spi.tbuff, "/*", 2)==0 ) {        // C style comment block?
@@ -193,10 +194,8 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
       if ( !spi.parse_directive() ) break;
     } else if ( !spi.last && (islower(c) || c == '_') ) { // Possible C/C++ keyword?
       if ( !spi.parse_keyword() ) break;
-    } else {                                              // All other chars..
-      spi.last = isalnum(*spi.tbuff) || *spi.tbuff == '_' || *spi.tbuff == '.';
-      // Parse over the character
-      if ( !spi.parse_over_char() ) break;
+    } else {                                              // All other chars?
+      if ( !spi.parse_all_else() ) break;
     }
   }
 }

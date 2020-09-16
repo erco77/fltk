@@ -196,3 +196,11 @@ int StyleParseInfo::parse_escape() {
   if ( !parse_over_char(no_crlf) ) return 0;     // char escaped
   return 1;
 }
+
+// Parse all other non-specific characters
+//    Returns 0 if hit end of buffer, 1 otherwise.
+//
+int StyleParseInfo::parse_all_else() {
+  last = isalnum(*tbuff) || *tbuff == '_' || *tbuff == '.';
+  return parse_over_char();
+}

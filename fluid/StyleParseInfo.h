@@ -37,6 +37,7 @@ public:
   int  parse_directive();         // "#define"
   int  parse_line_comment();      // "// text.."
   int  parse_escape();            // "\'"
+  int  parse_all_else();          // all other code
 };
 
 #endif //StyleParseInfo_h
