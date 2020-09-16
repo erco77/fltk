@@ -167,35 +167,35 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
   // 'F' - Types          void, char..
   // 'G' - Keywords       if, while..
 
-  StyleParseInfo spi;
-  spi.tbuff  = in_tbuff;
-  spi.sbuff  = in_sbuff;
-  spi.len    = in_len;
-  spi.style  = in_style;
-  spi.lwhite = 1;        // 1:while parsing over leading white and first char past, 0:past white
-  spi.col    = 0;
-  spi.last   = 0;
+  StyleParse sp;
+  sp.tbuff  = in_tbuff;
+  sp.sbuff  = in_sbuff;
+  sp.len    = in_len;
+  sp.style  = in_style;
+  sp.lwhite = 1;        // 1:while parsing over leading white and first char past, 0:past white
+  sp.col    = 0;
+  sp.last   = 0;
 
   // Loop through the code, updating style buffer
   char c;
-  while ( spi.len > 0 ) {
-    c = spi.tbuff[0];  // current char
-    if ( spi.style == 'C' ) {                             // Started in middle of comment block?
-      if ( !spi.parse_block_comment() ) break;
-    } else if ( strncmp(spi.tbuff, "/*", 2)==0 ) {        // C style comment block?
-      if ( !spi.parse_block_comment() ) break;
+  while ( sp.len > 0 ) {
+    c = sp.tbuff[0];  // current char
+    if ( sp.style == 'C' ) {                              // Started in middle of comment block?
+      if ( !sp.parse_block_comment() ) break;
+    } else if ( strncmp(sp.tbuff, "/*", 2)==0 ) {         // C style comment block?
+      if ( !sp.parse_block_comment() ) break;
     } else if ( c == '\\' ) {                             // Backslash escape char?
-      if ( !spi.parse_escape() ) break;
-    } else if ( strncmp(spi.tbuff, "//", 2)==0 ) {        // Line comment?
-      if ( !spi.parse_line_comment() ) break;
+      if ( !sp.parse_escape() ) break;
+    } else if ( strncmp(sp.tbuff, "//", 2)==0 ) {         // Line comment?
+      if ( !sp.parse_line_comment() ) break;
     } else if ( c == '"' ) {                              // Start of quoted string?
-      if ( !spi.parse_quoted_string() ) break;
-    } else if ( c == '#' && spi.lwhite ) {                // Start of '#' directive?
-      if ( !spi.parse_directive() ) break;
-    } else if ( !spi.last && (islower(c) || c == '_') ) { // Possible C/C++ keyword?
-      if ( !spi.parse_keyword() ) break;
+      if ( !sp.parse_quoted_string() ) break;
+    } else if ( c == '#' && sp.lwhite ) {                 // Start of '#' directive?
+      if ( !sp.parse_directive() ) break;
+    } else if ( !sp.last && (islower(c) || c == '_') ) {  // Possible C/C++ keyword?
+      if ( !sp.parse_keyword() ) break;
     } else {                                              // All other chars?
-      if ( !spi.parse_all_else() ) break;
+      if ( !sp.parse_all_else() ) break;
     }
   }
 }

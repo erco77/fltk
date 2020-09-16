@@ -30,7 +30,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Editor.H>
-#include "StyleParseInfo.h"
+#include "StyleParse.h"
 
 class CodeEditor : public Fl_Text_Editor {
   static Fl_Text_Display::Style_Table_Entry styletable[];
@@ -61,7 +61,7 @@ class CodeEditor : public Fl_Text_Editor {
   // attempt to make the fluid code editor widget honour textsize setting
   void textsize(Fl_Fontsize s);
 
-  friend class StyleParseInfo;
+  friend class StyleParse;
 };
 
 class CodeViewer : public CodeEditor {

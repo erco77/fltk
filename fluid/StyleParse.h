@@ -1,8 +1,26 @@
-#ifndef StyleParseInfo_h
-#define StyleParseInfo_h
+//
+// "$Id$"
+//
+// Syntax highlighting style parser class - erco 09/16/2020
+//
+// Copyright 1998-2016 by Bill Spitzak and others.
+//
+// This library is free software. Distribution and use rights are outlined in
+// the file "COPYING" which should have been included with this file.  If this
+// file is missing or damaged, see the license at:
+//
+//     http://www.fltk.org/COPYING.php
+//
+// Please report all bugs and problems on the following page:
+//
+//     http://www.fltk.org/str.php
+//
+
+#ifndef StyleParse_h
+#define StyleParse_h
 
 // Class to manage style parsing, friend of CodeEditor
-class StyleParseInfo {
+class StyleParse {
 public:
   const char *tbuff;        // text buffer
   char       *sbuff;        // style buffer
@@ -13,7 +31,7 @@ public:
   char        keyword[40];  // keyword parsing buffer
   char        last;         // flag for keyword parsing
 
-  StyleParseInfo() {
+  StyleParse() {
     tbuff  = 0;
     sbuff  = 0;
     len    = 0;
@@ -40,4 +58,8 @@ public:
   int  parse_all_else();          // all other code
 };
 
-#endif //StyleParseInfo_h
+#endif //StyleParse_h
+
+//
+// End of "$Id$".
+//
