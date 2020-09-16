@@ -26,7 +26,6 @@
 #include <ctype.h>
 #include "CodeEditor.h"
 
-
 Fl_Text_Display::Style_Table_Entry CodeEditor::
 		styletable[] = {	// Style table
 		  { FL_FOREGROUND_COLOR, FL_COURIER,        11 }, // A - Plain
@@ -134,12 +133,18 @@ extern "C" {
   }
 }
 
+// See if 'find' is a C/C++ keyword.
+//     Refer to bsearch(3) for return value.
+//
 void* CodeEditor::search_keywords(char *find) {
   return bsearch(&find, code_keywords,
                  sizeof(code_keywords) / sizeof(code_keywords[0]),
                  sizeof(code_keywords[0]), compare_keywords);
 }
 
+// See if 'find' is a C/C++ type.
+//     Refer to bsearch(3) for return value.
+//
 void* CodeEditor::search_types(char *find) {
   return bsearch(&find, code_types,
                  sizeof(code_types) / sizeof(code_types[0]),
@@ -170,7 +175,7 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
   spi.col    = 0;
   spi.last   = 0;
 
-  char c,c2,save;
+  char c,c2;
   const char no_crlf = 0;
   while ( spi.len > 0 ) {
     c  = spi.tbuff[0];                     // current char
@@ -187,34 +192,27 @@ void CodeEditor::style_parse(const char *in_tbuff,         // text buffer to par
       //    Purposefully don't 'handle' \n, since an escaped \n should be
       //    a continuation of a line, such as in a multiline #directive
       //
-      if ( !spi.parse_over(no_crlf) ) break;     // backslash
-      if ( !spi.parse_over(no_crlf) ) break;     // char escaped
+      if ( !spi.parse_over_char(no_crlf) ) break;     // backslash
+      if ( !spi.parse_over_char(no_crlf) ) break;     // char escaped
       continue;
     } else if ( spi.style != 'D' && spi.style != 'B' && c == '/' && c2 == '/' ) {
-      // Start of line comment?
-      save = spi.style;
-      spi.style = 'B';
-      while ( spi.parse_over() && *spi.tbuff != '\n' ) { }
-      spi.style = save;
+      spi.parse_line_comment();
       continue;
     } else if ( spi.style != 'D' && c == '"' ) {
       // Start of quoted string?
-      save = spi.style;
-      spi.style = 'D';
       spi.parse_quoted_string();
-      spi.style = save;
-    } else if ( c == '#' && spi.lwhite ) {
-      // '#' Directive? Allow leading whitespace
-      spi.style = 'E';
-    } else if ( spi.style != 'D' && !spi.last && (islower(c) || c == '_') ) {
-        // Possible C/C++ keyword? Parse over and restyle if so
-        spi.parse_keyword();
-        //DEBUG if ( spi.last ) printf("KEYWORD '%s'\n", spi.keyword);
-        continue;
+      continue;
+    } else if ( c == '#' && spi.lwhite ) { // '#' Directive?
+      spi.parse_directive();
+      continue;
+    } else if ( // spi.style != 'D' &&     // not parsing in a string
+                !spi.last && (islower(c) || c == '_') ) { // Possible C/C++ keyword?
+      spi.parse_keyword();
+      continue;
     }
     spi.last = isalnum(*spi.tbuff) || *spi.tbuff == '_' || *spi.tbuff == '.';
     // Parse over the character
-    if ( !spi.parse_over() ) break;
+    if ( !spi.parse_over_char() ) break;
   }
 }
 
@@ -226,12 +224,8 @@ void CodeEditor::style_update(int pos, int nInserted, int nDeleted,
                               int /*nRestyled*/, const char * /*deletedText*/,
                               void *cbArg) {
   CodeEditor	*editor = (CodeEditor *)cbArg;
-  int		start,				// Start of text
-		end;				// End of text
-  char		last,				// Last style on line
-		*style,				// Style data
+  char		*style,				// Style data
 		*text;				// Text data
-
 
   // If this is just a selection change, just unselect the style buffer...
   if (nInserted == 0 && nDeleted == 0) {
@@ -255,7 +249,7 @@ void CodeEditor::style_update(int pos, int nInserted, int nDeleted,
 
   editor->mStyleBuffer->select(pos, pos + nInserted - nDeleted);
 
-  // Reparse whole buffer, don't get cute
+  // Reparse whole buffer, don't get cute. Maybe optimize range later
   int len = editor->buffer()->length();
   text  = editor->mBuffer->text_range(0, len);
   style = editor->mStyleBuffer->text_range(0, len);
